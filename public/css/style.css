@@ -36,6 +36,7 @@ input::-webkit-inner-spin-button {
 }
 
 @media (max-width: 410px) {
+  
   #OTP{
     width: 30px;
     height: 30px;

@@ -18,11 +18,7 @@ function MerchantContext({ children }) {
         if (result !="undefined" && result.Status === 1) {
           let data = result.Data
           const link = document.querySelector("link[rel='icon']");
-          console.log(link.href);
           
-          if (link) {
-            link.href = data.MerchantInfor.MrtLogo;
-          }
           setMerchantData(data.MerchantInfor);
           setUrlApi(data.MerchantInfor.MrtUrlApi)
           setServerError(false)

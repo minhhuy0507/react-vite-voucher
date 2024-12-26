@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-function SaveData() {
+function StoreData() {
   const [data, setData] = useState(null);
 
   const fetchNewsData = async () => {
@@ -53,4 +53,4 @@ function SaveData() {
   );
 }
 
-export default SaveData;
+export default StoreData;
