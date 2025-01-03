@@ -1,8 +1,8 @@
-import React, { useContext } from 'react'
-import { PromotionProvider } from '../context/PromotionContext'
+import React from 'react'
+import { useSelector } from 'react-redux'
 
 const Content = () => {
-  const { promotionData } = useContext(PromotionProvider)
+  const promotionData = useSelector(state=>state.merchant.promotionData)
 
   return (
     <div dangerouslySetInnerHTML={{__html: promotionData.CrnContent}}>

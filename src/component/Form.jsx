@@ -1,16 +1,14 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import axios from "axios";
-import { MerchantProvider } from "../context/MerchantContext";
+import axios from "../utils/axios-customize";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 
 const Form = ({ onOtpVerified, disable }) => {
-  const { urlApi } = useContext(MerchantProvider);
-  const { crnid } = useParams();
-
+  const { key, crnid } = useParams();
+  const {state} = useLocation()
   const [otpVerify, setOtpVerify] = useState();
   const [user, setUser] = useState({
     CustomerName: "",
@@ -51,34 +49,47 @@ const Form = ({ onOtpVerified, disable }) => {
     });
   };
 
-  const onSubmit = () => {
-    axios
-      .post(`${urlApi}/api/NewsPromotion/CheckNewsPromotion`, {
-        CustomerName: user.CustomerName,
-        PhoneNumber: user.PhoneNumber,
-        Email: user.Email,
-        CrnId: crnid,
-      })
-      .then((res) => res.data)
-      .then((data) => {
-        let status = data.Status;
-        let message = data.Exception_Message;
-        let otp = data.Data;
+  const onSubmit = async () => {
+    const formData = {
+      CustomerName: user.CustomerName,
+      PhoneNumber: user.PhoneNumber,
+      Email: user.Email,
+      CrnId: crnid,
+      Key: key,
+    };
+
+    const data = await axios.post(
+      `/api/ThirdParty/CheckNewsPromotion`,
+      formData
+    );
+
+    if (data) {
+      if (data.metadata) {
+        let status = data.metadata.Status;
+        let message = data.metadata.Exception_Message;
+        let otp = data.metadata.Data;
         if (status === 1) {
-          setUser({ ...user, OtpCode: otp, CrnId: crnid });
+          setUser({ ...user, OtpCode: otp, CrnId: crnid, Key: key });
           setOtpVerify(true);
           document.body.classList.add("overflow-hidden");
+
           return;
         }
         notif(message);
-      })
-      .catch((error) => console.log("404 Not Found"));
+      }
+    }
   };
 
   const handleModalClose = () => {
     setOtpVerify(false);
     document.body.classList.remove("overflow-hidden");
   };
+
+  useEffect(()=>{
+    if(state){
+      notif(state.message)
+    }
+  },[])
 
   return (
     <>
@@ -198,7 +209,6 @@ const Form = ({ onOtpVerified, disable }) => {
 const OTP = ({ onClose, user, onOtpVerified }) => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [limit, setLimit] = useState(0);
-  const { urlApi } = useContext(MerchantProvider);
   const inputRefs = useRef([]);
 
   let fail = (message) => {
@@ -213,8 +223,8 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
       theme: "dark",
       transition: Bounce,
       style: {
-        fontSize: "20px",
-        padding: "20px",
+        fontSize: "30px",
+        padding: "40px",
         backgroundColor: "black",
         color: "white",
         borderRadius: "10px",
@@ -224,6 +234,8 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
   };
 
   useEffect(() => {
+    console.log(user);
+
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
@@ -231,7 +243,6 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
 
   const handleChange = (index, e) => {
     e.preventDefault();
-    const pasteData = e.clip;
     const value = e.target.value;
     if (isNaN(value)) return;
     const newOtp = [...otp];
@@ -260,8 +271,7 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
     const pasteData = e.clipboardData.getData("text").trim();
 
     const otpArray = pasteData.split("");
-    if(otpArray.length>Array())
-    setOtp(otpArray);
+    if (otpArray.length > Array()) setOtp(otpArray);
 
     inputRefs.current[otpArray.length - 1]?.focus();
   };
@@ -273,12 +283,13 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
       const inputOTP = combineOtp;
       if (userOTP === inputOTP) {
         axios
-          .post(`${urlApi}/api/NewsPromotion/RegisterNewsPromotion`, {
+          .post(`/api/ThirdParty/RegisterNewsPromotion`, {
             CustomerName: user.CustomerName,
             PhoneNumber: user.PhoneNumber,
             Email: user.Email,
             CrnId: user.CrnId,
             OtpCode: user.OtpCode,
+            Key: user.Key,
           })
           .then((res) => res.data)
           .then((data) => {
@@ -343,7 +354,7 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
                   return (
                     <input
                       key={index}
-                      type="text"
+                      type="number"
                       id="OTP"
                       ref={(input) => (inputRefs.current[index] = input)}
                       value={value}

@@ -1,60 +1,116 @@
 import Voucher from "../component/Voucher";
 import Content from "../component/Content";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import GetCode from "../component/GetCode";
-import { PromotionProvider } from "../context/PromotionContext";
 import Loading from "./Loading";
+import Cookies from "js-cookie";
+import { useSelector } from "react-redux";
 
 const Main = () => {
+  const promotionData = useSelector(state=>state.merchant.promotionData)
   const [otpVerified, setOtpVerified] = useState(false);
   const [voucherCode, setVoucherCode] = useState();
   const [evtStatus, setEvtStatus] = useState();
   const [isLoading, setIsLoading] = useState(true);
-  const [isDate, setIsDate] = useState(0);
-  const { promotionData } = useContext(PromotionProvider);
-
+  const [disable, setDisable] = useState();
 
   const handleOtpVerification = (voucherCode) => {
     setVoucherCode(voucherCode);
     setOtpVerified(true);
   };
 
-  //Sự kiện khuyến mãi
   const handleEvent = () => {
     const now = new Date().getTime();
-    const startEvt = new Date("2024-12-26T19:47:00").getTime(); //Ngày bắt đầu sự kiện
-    //Ngày bắt đầu sự kiện
-    const endEvt = new Date("2024-12-27T19:47:30").getTime(); //Ngày kết thúc sự kiện
-
-    if (now < startEvt) {
-      setEvtStatus(0); //Sắp diễn ra
-    } else if (now >= startEvt && now <= endEvt) {
-      setEvtStatus(1); //Đã diễn ra
-    } else {
-      setEvtStatus(-1); //Hết event
+    let startEvtDay
+    if(promotionData && promotionData.CrnActionDate){
+      startEvtDay = new Date(promotionData.CrnActionDate).getTime();
     }
+    const endEvtDay = new Date("2025-12-31T00:00:00").getTime();
 
+    if (now < startEvtDay) {
+      Cookies.remove("regTime")
+      setEvtStatus(0);
+      handleStartEvent(now, startEvtDay);
+    } else {
+      if (now >= startEvtDay && now <= endEvtDay) {    
+        setEvtStatus(1);
+        handleEndEvent(now, endEvtDay);
+      } else {
+        setEvtStatus(-1);
+      }      
+    }
+    setIsLoading(false);
   };
 
+  const handleStartEvent = (now, startEvtDay) => {
+    const timeLeft = startEvtDay - now;
+    //Sắp diễn ra
+    setTimeout(() => {
+      setEvtStatus(1);
+    }, timeLeft);
+  };
+
+  const handleEndEvent = (now, endEvtDay) => {
+    const timeLeft = endEvtDay - now;
+
+    if (timeLeft >= 0) {
+      //Kết thúc hoặc hết event
+      setTimeout(() => {
+        Cookies.remove("regTime")
+        setEvtStatus(-1);
+      }, timeLeft);
+    }
+  };
+
+  const setCookie = () => {
+    //Không tồn tại
+    if (Cookies.get("regTime") === undefined) {
+      const now = new Date(Date.now() + 1000 * 60 * 15);
+      Cookies.set("regTime",now, {expires:365})
+      setDisable(false);
+      // window.location.reload()
+    }else{
+      const now = new Date(Date.now()).getDate();
+      const prev = new Date(Cookies.get("regTime")).getDate();
+      
+      if(now > prev){
+        Cookies.remove("regTime")
+      }
+    }
+    const now = new Date();
+    const nextDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
+    const timneLeft = nextDay - now;
+    
+    setTimeout(() => {
+      Cookies.remove("regTime");
+      const currentDay = new Date(Date.now() + 1000 * 60 * 15);
+      Cookies.set("regTime", currentDay, { expires: 365 });
+      setDisable(false);
+    }, timneLeft);
+  };
+
+  const offInput = () => {
+    setDisable(true);
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleEvent();
-      if(evtStatus!="undefined"){
-        setIsLoading(false)
-      }
-      setIsDate(new Date().getDate())
-    }, 1500);
-    return () => clearInterval(interval);
-    
-  }, [evtStatus, isLoading, isDate]);
+    handleEvent();
 
-  if(isLoading){
-    return(
-      <Loading/>
-    )
-  }else{
-    if (evtStatus === -1 ) {
+    if (evtStatus === 1) {
+      setCookie();
+    } else if(evtStatus === -1 || evtStatus === 1){
+      setDisable(true);
+    }
+  }, [evtStatus, isLoading]);
+
+  if (isLoading) {
+    return <Loading />;
+  } else {
+    if (evtStatus === -1) {
       return (
         <div
           className="row d-flex flex-column text-center p-5 mb-3"
@@ -85,7 +141,8 @@ const Main = () => {
                 <Voucher
                   onOtpVerified={handleOtpVerification}
                   evtStatus={evtStatus}
-                  isDate={isDate}
+                  offInput={offInput}
+                  flag={disable}
                 />
               </div>
               <div
@@ -103,7 +160,6 @@ const Main = () => {
       );
     }
   }
-  
 };
 
 export default Main;
