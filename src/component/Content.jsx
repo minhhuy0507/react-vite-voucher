@@ -7,7 +7,6 @@ const Content = () => {
   return (
     <div dangerouslySetInnerHTML={{__html: promotionData.CrnContent}}>
     </div>
-
   )
 }
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect } from "react";
 import Banner from "../component/Banner";
 import Main from "./Main";
 import { useSelector } from "react-redux";
@@ -9,7 +9,7 @@ const Layout = () => {
     (state) => state.merchant.promotionData
   );
 
-  useMemo(() => {
+  useEffect(() => {
     if(promotionData.CrnName){
       let name = document.getElementsByTagName("title")[0];
       name.text = promotionData.CrnName;

@@ -1,4 +1,6 @@
+a{
+    text-decoration: none;
+}
 #err{
-    height: 500px;
     font-size: 28px;
 }

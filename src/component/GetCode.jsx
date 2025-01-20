@@ -21,10 +21,10 @@ const GetCode = ({ voucherCode }) => {
                             viewBox={`0 0 256 256`} />
                     </div>
                     
-                    <h3 className="text-dark">Trạng thái: {!voucherCode.IsUse?
-                        "<h3 className='text-success'>Chưa sử dụng</h3><h3>Hạn sử dụng từ ngày {new Date(voucherCode.GifFrom).getDate()}/{new Date(voucherCode.GifFrom).getMonth()}/{new Date(voucherCode.GifFrom).getFullYear()} đến ngày {new Date(voucherCode.GifTo).getDate()}/{new Date(voucherCode.GifTo).getMonth()}/{new Date(voucherCode.GifTo).getFullYear()}</h3>":
-                        "<h3 className='text-danger'>Đã sử dụng</h3>"}
-                    </h3>
+                    <h2 className="text-dark">Trạng thái: {!voucherCode.IsUse?
+                        <><p className='text-success'>Chưa sử dụng</p><p className="text-danger">Hạn sử dụng từ ngày {new Date(voucherCode.GifFrom).getDate()}/{new Date(voucherCode.GifFrom).getMonth()+1}/{new Date(voucherCode.GifFrom).getFullYear()} đến ngày {new Date(voucherCode.GifTo).getDate()}/{new Date(voucherCode.GifTo).getMonth()+1}/{new Date(voucherCode.GifTo).getFullYear()}</p></>:
+                        <p className='text-danger'>Đã sử dụng</p>}
+                    </h2>
                 </div>}
         </div>
     )

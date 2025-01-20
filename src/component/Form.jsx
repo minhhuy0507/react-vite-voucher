@@ -1,14 +1,13 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import axios from "../utils/axios-customize";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useLocation, useParams } from "react-router";
+import { useParams } from "react-router";
 
 const Form = ({ onOtpVerified, disable }) => {
   const { key, crnid } = useParams();
-  const {state} = useLocation()
   const [otpVerify, setOtpVerify] = useState();
   const [user, setUser] = useState({
     CustomerName: "",
@@ -84,12 +83,6 @@ const Form = ({ onOtpVerified, disable }) => {
     setOtpVerify(false);
     document.body.classList.remove("overflow-hidden");
   };
-
-  useEffect(()=>{
-    if(state){
-      notif(state.message)
-    }
-  },[])
 
   return (
     <>
@@ -234,7 +227,7 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
   };
 
   useEffect(() => {
-    console.log(user);
+    // console.log(user);
 
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
@@ -281,6 +274,7 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
     if (combineOtp.length === 6) {
       const userOTP = user.OtpCode;
       const inputOTP = combineOtp;
+      
       if (userOTP === inputOTP) {
         axios
           .post(`/api/ThirdParty/RegisterNewsPromotion`, {
@@ -291,20 +285,26 @@ const OTP = ({ onClose, user, onOtpVerified }) => {
             OtpCode: user.OtpCode,
             Key: user.Key,
           })
-          .then((res) => res.data)
           .then((data) => {
-            let status = data.Status;
-            let message = data.Exception_Message;
-            if (status && status === 1) {
-              setOtp(new Array(6).fill(""));
-              onOtpVerified(data.Data);
-              onClose();
-            } else {
-              fail(message);
-              setOtp(new Array(6).fill(""));
-              onClose();
+            if(data && data.status && data.status ==="success"){
+              if(data.metadata){
+                let statusData = data.metadata.Status;
+                let message = data.metadata.Exception_Message;
+                if (statusData && statusData ===1 ) {
+                  setOtp(new Array(6).fill(""));
+                  onOtpVerified(data.metadata.Data);
+                  onClose();
+                } else {
+                  fail(message);
+                  setOtp(new Array(6).fill(""));
+                  onClose();
+                }
+              }
+            }else{
+              throw new Error("Bad request");
             }
-          });
+          })
+          .catch(error => console.error(error))
       } else {
         setLimit(limit + 1);
         if (limit < 2) {

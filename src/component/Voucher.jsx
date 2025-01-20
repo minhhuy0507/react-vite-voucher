@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React from "react";
 import Form from "./Form";
 import FlipCountdown from "@rumess/react-flip-countdown";
 import Cookies from "js-cookie";
 import { useSelector } from "react-redux";
 
 const Voucher = ({ onOtpVerified, evtStatus, offInput, flag }) => {
-  const promotionData = useSelector(state=>state.merchant.promotionData)
+  const promotionData = useSelector((state) => state.merchant.promotionData);
 
   return (
     <>
@@ -18,7 +18,7 @@ const Voucher = ({ onOtpVerified, evtStatus, offInput, flag }) => {
             Đăng ký nhanh tay, nhận ngay mã Voucher
           </h4>
 
-          {evtStatus === 0 || evtStatus === -1 ? (
+          {evtStatus === 0 ? (
             <div className="d-flex flex-column my-3">
               <h5 className="text-danger text-center">
                 Chuẩn bị săn Deal Hot!
@@ -35,13 +35,13 @@ const Voucher = ({ onOtpVerified, evtStatus, offInput, flag }) => {
                   .toString()
                   .padStart(2, 0)}{" "}
                 Ngày {new Date(promotionData.CrnActionDate).getDate()}/
-                {new Date(promotionData.CrnActionDate).getMonth()}/
+                {new Date(promotionData.CrnActionDate).getMonth()+1}/
                 {new Date(promotionData.CrnActionDate).getFullYear()}
               </h5>
             </div>
           ) : (
             <div className="d-flex flex-column justify-content-center text-center my-3">
-              {Cookies.get("regTime") != undefined && !flag ?(
+              {Cookies.get("regTime") != undefined && flag !== true ? (
                 <FlipCountdown
                   hideYear
                   hideMonth
@@ -63,6 +63,7 @@ const Voucher = ({ onOtpVerified, evtStatus, offInput, flag }) => {
               )}
             </div>
           )}
+
           <Form onOtpVerified={onOtpVerified} disable={flag} />
           <p className="mt-3 text-center">
             Đã có{" "}
